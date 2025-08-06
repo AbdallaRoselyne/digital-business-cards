@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FaLinkedin,
-  FaTwitter,
   FaEnvelope,
   FaPhone,
   FaShare,
-  FaArrowLeft,
-  FaArrowRight,
   FaDownload,
   FaGlobe,
   FaInfoCircle,
@@ -20,43 +17,113 @@ import { fetchEmployeeData } from "../utilities/sheetService";
 const EmployeeCard = () => {
   const { employeeId } = useParams();
   const navigate = useNavigate();
-  const [employees, setEmployees] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchEmployeeData();
-      setEmployees(data);
+    const loadEmployee = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      if (employeeId) {
-        const foundIndex = data.findIndex(
-          (emp) =>
-            emp.id === employeeId ||
-            emp.name.toLowerCase().replace(/\s+/g, "-") === employeeId
-        );
-        if (foundIndex >= 0) setCurrentIndex(foundIndex);
+        const employees = await fetchEmployeeData();
+
+        // Debugging: Log the first few employees and the search ID
+        console.log("Searching for:", employeeId);
+        console.log("First few employees:", employees.slice(0, 3));
+
+        // Case-insensitive search with multiple matching strategies
+        const foundEmployee = employees.find((emp) => {
+          // Check direct ID match
+          if (
+            emp.id &&
+            emp.id.toString().toLowerCase() === employeeId.toLowerCase()
+          ) {
+            return true;
+          }
+
+          // Check slug match (created in fetchEmployeeData)
+          if (emp.slug && emp.slug === employeeId.toLowerCase()) {
+            return true;
+          }
+
+          // Check email prefix match
+          if (emp.email) {
+            const emailPrefix = emp.email.split("@")[0].toLowerCase();
+            if (emailPrefix === employeeId.toLowerCase()) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+
+        if (foundEmployee) {
+          console.log("Found employee:", foundEmployee);
+          setCurrentEmployee(foundEmployee);
+        } else {
+          setError(`Employee not found. Searched for: ${employeeId}`);
+          console.log("All employees:", employees);
+        }
+      } catch (err) {
+        setError(`Failed to load employee data: ${err.message}`);
+        console.error("Error loading employee:", err);
+      } finally {
+        setLoading(false);
       }
     };
-    loadData();
+
+    if (employeeId) {
+      loadEmployee();
+    } else {
+      setError("No employee ID provided");
+      setLoading(false);
+    }
   }, [employeeId]);
 
-  if (employees.length === 0) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="animate-pulse text-gray-500">Loading...</div>
+        <div className="animate-pulse text-gray-500">
+          Loading employee data...
+        </div>
       </div>
     );
   }
 
-  const employee = employees[currentIndex];
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-red-500 max-w-md text-center">
+          {error}
+          <p className="mt-4 text-sm text-gray-600">
+            Please check the URL or contact support.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentEmployee) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-gray-500">No employee selected</div>
+      </div>
+    );
+  }
+
+  const employee = currentEmployee;
   const primaryColor = employee.primarycolor || "#2563EB";
   const secondaryColor = employee.secondarycolor || "#1E40AF";
 
   const generateShareLink = () => {
     const identifier =
-      employee.id || employee.name.toLowerCase().replace(/\s+/g, "-");
-    return `${window.location.origin}/${identifier}`;
+      employee.id ||
+      employee.name.toLowerCase().replace(/\s+/g, "-") ||
+      employee.email.split("@")[0];
+    return `${window.location.origin}/employee/${identifier}`;
   };
 
   const handleSaveContact = () => {
@@ -103,14 +170,6 @@ const EmployeeCard = () => {
     }
   };
 
-  const navigateToEmployee = (index) => {
-    const employee = employees[index];
-    const identifier =
-      employee.id || employee.name.toLowerCase().replace(/\s+/g, "-");
-    navigate(`/${identifier}`);
-    setCurrentIndex(index);
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
       {/* Main Card Container */}
@@ -121,27 +180,25 @@ const EmployeeCard = () => {
         transition={{ duration: 0.3 }}
       >
         {/* Card Header with Gradient */}
-        <div 
+        <div
           className="h-48 relative"
-          style={{ 
-            background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`
-          }}
+          style={{ backgroundColor: primaryColor }}
         >
           {/* Company Logo */}
           {employee.companylogo && (
             <motion.img
               src={`${employee.companylogo.replace(
                 "/upload/",
-                "/upload/w_300,c_scale/"
+                "/upload/w_400,c_scale/"
               )}`}
               alt={`${employee.company} Logo`}
-              className="absolute top-6 left-6 h-10 object-contain"
+              className="absolute top-6 left-6 h-16 object-contain"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             />
           )}
-          
+
           {/* Profile Picture */}
           <motion.div
             className="absolute -bottom-16 left-1/2 transform -translate-x-1/2"
@@ -179,7 +236,9 @@ const EmployeeCard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">{employee.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">
+              {employee.name}
+            </h1>
             <p className="text-md font-medium text-gray-600 mb-1">
               {employee.title}
             </p>
@@ -217,17 +276,17 @@ const EmployeeCard = () => {
                 <FaLinkedin size={18} className="text-[#0077B5]" />
               </motion.a>
             )}
-            {employee.twitter && (
+            {employee.companywebsite && (
               <motion.a
-                href={`https://twitter.com/${employee.twitter.replace("@", "")}`}
+                href={employee.companywebsite}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
                 whileHover={{ y: -3, scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                aria-label="Twitter"
+                aria-label="Website"
               >
-                <FaTwitter size={18} className="text-[#1DA1F2]" />
+                <FaGlobe size={18} className="text-gray-700" />
               </motion.a>
             )}
             {employee.phone && (
@@ -348,48 +407,6 @@ const EmployeeCard = () => {
           </motion.div>
         </div>
       </motion.div>
-
-      {/* Navigation for multiple employees */}
-      {employees.length > 1 && (
-        <motion.div
-          className="flex items-center mt-8 space-x-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-        >
-          <motion.button
-            onClick={() =>
-              navigateToEmployee(
-                currentIndex > 0 ? currentIndex - 1 : employees.length - 1
-              )
-            }
-            className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200"
-            whileHover={{ x: -2, scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Previous"
-          >
-            <FaArrowLeft size={18} className="text-gray-700" />
-          </motion.button>
-
-          <span className="text-sm font-medium text-gray-700">
-            {currentIndex + 1} / {employees.length}
-          </span>
-
-          <motion.button
-            onClick={() =>
-              navigateToEmployee(
-                currentIndex < employees.length - 1 ? currentIndex + 1 : 0
-              )
-            }
-            className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 border border-gray-200"
-            whileHover={{ x: 2, scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Next"
-          >
-            <FaArrowRight size={18} className="text-gray-700" />
-          </motion.button>
-        </motion.div>
-      )}
     </div>
   );
 };
