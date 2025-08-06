@@ -30,11 +30,9 @@ const EmployeeCard = () => {
 
         const employees = await fetchEmployeeData();
 
-        // Debugging: Log the first few employees and the search ID
         console.log("Searching for:", employeeId);
         console.log("First few employees:", employees.slice(0, 3));
 
-        // Case-insensitive search with multiple matching strategies
         const foundEmployee = employees.find((emp) => {
           // Check direct ID match
           if (
@@ -44,7 +42,6 @@ const EmployeeCard = () => {
             return true;
           }
 
-          // Check slug match (created in fetchEmployeeData)
           if (emp.slug && emp.slug === employeeId.toLowerCase()) {
             return true;
           }
@@ -192,10 +189,8 @@ const EmployeeCard = () => {
                 "/upload/w_400,c_scale/"
               )}`}
               alt={`${employee.company} Logo`}
-              className="absolute top-6 left-6 h-16 object-contain"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              className="h-16 object-contain"
+              style={{ maxWidth: "200px" }}
             />
           )}
 
