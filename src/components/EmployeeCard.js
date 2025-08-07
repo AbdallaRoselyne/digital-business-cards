@@ -189,8 +189,8 @@ const EmployeeCard = () => {
                 "/upload/w_400,c_scale/"
               )}`}
               alt={`${employee.company} Logo`}
-              className="h-16 object-contain"
-              style={{ maxWidth: "200px" }}
+              className="h-100 object-contain mx-auto pt-4" // <-- Added mx-auto + padding top
+              style={{ maxWidth: "300px" }}
             />
           )}
 
