@@ -27,7 +27,9 @@ export const fetchEmployeeData = async () => {
     return rows.map((row) => {
       const employee = {};
       normalizedHeaders.forEach((header, index) => {
-        employee[header] = row[index] ? row[index].trim() : "";
+        // Only change: map "bio" column to "address"
+        const key = header === "bio" ? "address" : header;
+        employee[key] = row[index] ? row[index].trim() : "";
       });
 
       if (employee.name) {

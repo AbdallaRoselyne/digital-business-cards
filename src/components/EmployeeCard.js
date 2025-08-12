@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  FaLinkedin,
   FaEnvelope,
   FaPhone,
   FaShare,
   FaDownload,
-  FaGlobe,
   FaInfoCircle,
+  FaLinkedin,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { QRCodeSVG as QRCode } from "qrcode.react";
@@ -30,43 +29,32 @@ const EmployeeCard = () => {
 
         const employees = await fetchEmployeeData();
 
-        console.log("Searching for:", employeeId);
-        console.log("First few employees:", employees.slice(0, 3));
-
         const foundEmployee = employees.find((emp) => {
-          // Check direct ID match
           if (
             emp.id &&
             emp.id.toString().toLowerCase() === employeeId.toLowerCase()
           ) {
             return true;
           }
-
           if (emp.slug && emp.slug === employeeId.toLowerCase()) {
             return true;
           }
-
-          // Check email prefix match
           if (emp.email) {
             const emailPrefix = emp.email.split("@")[0].toLowerCase();
             if (emailPrefix === employeeId.toLowerCase()) {
               return true;
             }
           }
-
           return false;
         });
 
         if (foundEmployee) {
-          console.log("Found employee:", foundEmployee);
           setCurrentEmployee(foundEmployee);
         } else {
           setError(`Employee not found. Searched for: ${employeeId}`);
-          console.log("All employees:", employees);
         }
       } catch (err) {
         setError(`Failed to load employee data: ${err.message}`);
-        console.error("Error loading employee:", err);
       } finally {
         setLoading(false);
       }
@@ -129,9 +117,14 @@ const EmployeeCard = () => {
       .addName(employee.name)
       .addJobtitle(employee.title)
       .addCompany(employee.company)
-      .addEmail(employee.email)
-      .addPhoneNumber(employee.phone, "WORK");
+      .addEmail(employee.email);
 
+    if (employee.phone) {
+      myVCard.addPhoneNumber(employee.phone, "WORK");
+    }
+    if (employee.office) {
+      myVCard.addPhoneNumber(employee.office, "WORK");
+    }
     if (employee.photourl) {
       myVCard.addPhotoURL(employee.photourl);
     }
@@ -169,19 +162,17 @@ const EmployeeCard = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
-      {/* Main Card Container */}
       <motion.div
         className="w-full max-w-md rounded-3xl overflow-hidden shadow-xl bg-white"
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {/* Card Header with Gradient */}
+        {/* Header */}
         <div
           className="h-48 relative"
           style={{ backgroundColor: primaryColor }}
         >
-          {/* Company Logo */}
           {employee.companylogo && (
             <motion.img
               src={`${employee.companylogo.replace(
@@ -189,12 +180,11 @@ const EmployeeCard = () => {
                 "/upload/w_400,c_scale/"
               )}`}
               alt={`${employee.company} Logo`}
-              className="h-100 object-contain mx-auto pt-4" // <-- Added mx-auto + padding top
+              className="h-100 object-contain mx-auto pt-4"
               style={{ maxWidth: "300px" }}
             />
           )}
 
-          {/* Profile Picture */}
           <motion.div
             className="absolute -bottom-16 left-1/2 transform -translate-x-1/2"
             initial={{ scale: 0.8 }}
@@ -223,7 +213,7 @@ const EmployeeCard = () => {
           </motion.div>
         </div>
 
-        {/* Card Body */}
+        {/* Body */}
         <div className="pt-20 pb-8 px-6 text-center">
           {/* Name & Title */}
           <motion.div
@@ -238,63 +228,6 @@ const EmployeeCard = () => {
               {employee.title}
             </p>
             <p className="text-sm text-gray-500 mb-6">{employee.company}</p>
-          </motion.div>
-
-          {/* Social Links - Horizontal */}
-          <motion.div
-            className="flex justify-center space-x-4 mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            {employee.email && (
-              <motion.a
-                href={`mailto:${employee.email}`}
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="Email"
-              >
-                <FaEnvelope size={18} className="text-gray-700" />
-              </motion.a>
-            )}
-            {employee.linkedin && (
-              <motion.a
-                href={employee.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="LinkedIn"
-              >
-                <FaLinkedin size={18} className="text-[#0077B5]" />
-              </motion.a>
-            )}
-            {employee.companywebsite && (
-              <motion.a
-                href={employee.companywebsite}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="Website"
-              >
-                <FaGlobe size={18} className="text-gray-700" />
-              </motion.a>
-            )}
-            {employee.phone && (
-              <motion.a
-                href={`tel:${employee.phone}`}
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
-                whileHover={{ y: -3, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label="Phone"
-              >
-                <FaPhone size={18} className="text-gray-700" />
-              </motion.a>
-            )}
           </motion.div>
 
           {/* Contact Details - Vertical List */}
@@ -322,6 +255,7 @@ const EmployeeCard = () => {
               </div>
             )}
 
+            {/* Optional Phone */}
             {employee.phone && (
               <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
@@ -339,14 +273,53 @@ const EmployeeCard = () => {
               </div>
             )}
 
-            {employee.bio && (
+            {/* Optional Office */}
+            {employee.office && (
+              <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
+                <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
+                  <FaPhone size={16} className="text-gray-600" />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-xs text-gray-500">Office</p>
+                  <a
+                    href={`tel:${employee.office}`}
+                    className="text-sm font-medium text-gray-800 hover:underline"
+                  >
+                    {employee.office}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {employee.address && (
               <div className="flex items-start space-x-4 p-3 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm mt-1">
                   <FaInfoCircle size={16} className="text-gray-600" />
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <p className="text-xs text-gray-500">About</p>
-                  <p className="text-sm text-gray-800">{employee.bio}</p>
+                  <p className="text-xs text-gray-500">Address</p>
+                  <p className="text-sm text-gray-800">{employee.address}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Optional LinkedIn */}
+            {employee.linkedin && (
+              <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
+                <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
+                  <FaLinkedin size={16} className="text-[#0077B5]" />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-xs text-gray-500">LinkedIn</p>
+                  <a
+                    href={employee.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-gray-800 hover:underline break-all"
+                    title={employee.linkedin}
+                  >
+                    {employee.linkedin}
+                  </a>
                 </div>
               </div>
             )}
