@@ -108,7 +108,7 @@ const EmployeeCard = () => {
       employee.id ||
       employee.name.toLowerCase().replace(/\s+/g, "-") ||
       employee.email.split("@")[0];
-    return `${window.location.origin}/employee/${identifier}`;
+    return `${window.location.origin}/${identifier}`;
   };
 
   const handleSaveContact = () => {
