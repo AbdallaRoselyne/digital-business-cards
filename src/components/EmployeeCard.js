@@ -5,7 +5,7 @@ import {
   FaPhone,
   FaShare,
   FaDownload,
-  FaInfoCircle,
+  FaMapMarkerAlt,
   FaLinkedin,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
@@ -259,7 +259,7 @@ const EmployeeCard = () => {
             {employee.phone && (
               <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
-                  <FaPhone size={16} className="text-gray-600" />
+                  <FaPhone size={16} className="text-gray-600" style={{ transform: "scaleX(-1)" }} />
                 </div>
                 <div className="text-left flex-1 min-w-0">
                   <p className="text-xs text-gray-500">Phone</p>
@@ -277,7 +277,7 @@ const EmployeeCard = () => {
             {employee.office && (
               <div className="flex items-center space-x-4 p-3 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
-                  <FaPhone size={16} className="text-gray-600" />
+                  <FaPhone size={16} className="text-gray-600" style={{ transform: "scaleX(-1)" }} />
                 </div>
                 <div className="text-left flex-1 min-w-0">
                   <p className="text-xs text-gray-500">Office</p>
@@ -294,7 +294,7 @@ const EmployeeCard = () => {
             {employee.address && (
               <div className="flex items-start space-x-4 p-3 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm mt-1">
-                  <FaInfoCircle size={16} className="text-gray-600" />
+                  <FaMapMarkerAlt size={16} className="text-gray-600" />
                 </div>
                 <div className="text-left flex-1 min-w-0">
                   <p className="text-xs text-gray-500">Address</p>
